@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Laboratorio Interactivo: Fuzz & Trémolo Óptico — Ing. Civil Física</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
+    body {
+      margin: 0;
+      background: radial-gradient(circle at 15% 15%, #1e1b4b 0%, #0f172a 55%, #090d16 100%);
+      color: #f8fafc;
+      overflow-x: hidden;
+    }
+    .canva-card {
+      background: rgba(30, 41, 59, 0.78);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 1.25rem;
+      box-shadow: 0 18px 40px -12px rgba(0, 0, 0, 0.5);
+    }
+    .canva-pill {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(236, 72, 153, 0.2));
+      border: 1px solid rgba(245, 158, 11, 0.45);
+    }
+    .pedal-fuzz-active {
+      box-shadow: 0 0 28px rgba(245, 158, 11, 0.55), inset 0 0 15px rgba(245, 158, 11, 0.25);
+      border-color: #f59e0b !important;
+    }
+    .pedal-trem-active {
+      box-shadow: 0 0 28px rgba(6, 182, 212, 0.55), inset 0 0 15px rgba(6, 182, 212, 0.25);
+      border-color: #06b6d4 !important;
+    }
+    .slide-fade {
+      animation: slideIn 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(10px) scale(0.99); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    input[type="range"] {
+      accent-color: #f59e0b;
+      cursor: pointer;
+    }
+    .cyan-slider {
+      accent-color: #06b6d4 !important;
+    }
+    .violet-slider {
+      accent-color: #a855f7 !important;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between select-none">
+
+  <!-- TOP NAVIGATION BAR -->
+  <header class="w-full border-b border-white/10 bg-slate-950/85 backdrop-blur-md sticky top-0 z-40 px-3 py-2.5">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+      <!-- Brand / Title -->
+      <div class="flex items-center gap-2.5">
+        <span class="px-2.5 py-1 rounded-lg text-xs font-extrabold uppercase tracking-wider bg-gradient-to-r from-amber-500 via-pink-500 to-violet-600 text-white shadow">
+          ⚡ Ing. Civil Física
+        </span>
+        <span class="text-sm font-bold text-slate-200 hidden sm:inline">
+          Simulador Interactivo: Fuzz &amp; Trémolo Óptico
+        </span>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav id="slideNavContainer" class="flex items-center gap-1.5 overflow-x-auto py-1">
+        <!-- Populated by JS -->
+      </nav>
+
+      <!-- Audio Action Button -->
+      <div class="flex items-center gap-2">
+        <button id="btnAudioToggle" type="button" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-400/40 transition flex items-center gap-1.5 shadow">
+          <span id="audioIcon">🔇</span> <span id="audioLabel">Audio en Vivo: OFF</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN STAGE -->
+  <main class="flex-1 flex flex-col items-center justify-center px-3 sm:px-6 py-4 max-w-7xl w-full mx-auto">
+
+    <!-- PAGE 1: CADENA COMPLETA DE SEÑAL Y TRANSFORMACIÓN DE ONDA -->
+    <section id="slide-0" class="slide-section w-full slide-fade">
+      <div class="canva-card p-5 sm:p-7 space-y-5">
+        <!-- Header + Presets -->
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
+          <div>
+            <span class="canva-pill px-3 py-1 rounded-full text-xs font-extrabold text-amber-300 uppercase">
+              🌊 Simulador 1 · Cadena Completa en Tiempo Real
+            </span>
+            <h2 class="text-xl sm:text-3xl font-black text-white mt-1.5">
+              ¿Cómo se transforma la onda desde la cuerda hasta el parlante?
+            </h2>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button" data-preset="clean" class="preset-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-400/40 transition">
+              ✨ 1. Guitarra Limpia
+            </button>
+            <button type="button" data-preset="fuzz" class="preset-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-400/40 transition">
+              🔥 2. Solo Pedal Fuzz
+            </button>
+            <button type="button" data-preset="trem" class="preset-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-400/40 transition">
+              🌊 3. Solo Trémolo Óptico
+            </button>
+            <button type="button" data-preset="both" class="preset-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-500 to-cyan-500 text-slate-950 shadow transition">
+              ⚡ 4. ¡Fuzz + Trémolo!
+            </button>
+          </div>
+        </div>
+
+        <!-- INTERACTIVE SIGNAL CHAIN BLOCKS -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 items-stretch">
+          <!-- Block 1: Guitar Pickup -->
+          <div class="p-4 rounded-2xl bg-slate-900/90 border border-emerald-400/40 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-extrabold uppercase text-emerald-400">1. Entrada (Inducción)</span>
+                <span class="text-lg">🎸</span>
+              </div>
+              <div class="text-base font-extrabold text-white mt-1">Cuerda + Cápsula</div>
+              <p class="text-xs text-slate-300 mt-1">
+                Ley de Faraday: la cuerda metálica vibra sobre el imán y crea una onda sinusoidal pura V_in(t).
+              </p>
+            </div>
+            <div class="mt-3 pt-2 border-t border-white/10 space-y-2">
+              <div class="flex justify-between text-xs">
+                <span class="text-slate-400">Nota / Frecuencia:</span>
+                <span id="lblNoteFreq" class="font-bold text-emerald-300">La (220 Hz)</span>
+              </div>
+              <input id="sliderNoteFreq" type="range" min="110" max="440" step="10" value="220" class="w-full" />
+              <button id="btnPluckString" type="button" class="w-full py-1.5 rounded-lg text-xs font-extrabold bg-emerald-500/25 hover:bg-emerald-500/40 text-emerald-200 border border-emerald-400/40 transition">
+                🎵 Rasguear Cuerda
+              </button>
+            </div>
+          </div>
+
+          <!-- Block 2: Fuzz Pedal -->
+          <div id="cardChainFuzz" class="p-4 rounded-2xl bg-slate-900/90 border-2 border-amber-500/50 pedal-fuzz-active flex flex-col justify-between transition">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-extrabold uppercase text-amber-400">2. Pedal Fuzz</span>
+                <span id="badgeChainFuzz" class="px-2 py-0.5 rounded-full text-[11px] font-black bg-amber-500 text-slate-950">ON</span>
+              </div>
+              <div class="text-base font-extrabold text-white mt-1">Recorte No Lineal</div>
+              <p class="text-xs text-slate-300 mt-1">
+                Transistor + Diodos: amplifica la señal al extremo y <strong>achata las cimas</strong> (onda casi cuadrada).
+              </p>
+            </div>
+            <div class="mt-3 pt-2 border-t border-white/10 space-y-2">
+              <div class="flex justify-between text-xs">
+                <span class="text-slate-400">Ganancia (Fuzz):</span>
+                <span id="lblChainFuzzGain" class="font-bold text-amber-300">7.5x</span>
+              </div>
+              <input id="sliderChainFuzzGain" type="range" min="1" max="15" step="0.5" value="7.5" class="w-full" />
+              <button id="btnToggleChainFuzz" type="button" class="w-full py-1.5 rounded-lg text-xs font-extrabold bg-amber-500 hover:bg-amber-400 text-slate-950 transition">
+                🦶 Pisar Switch Fuzz (ON/OFF)
+              </button>
+            </div>
+          </div>
+
+          <!-- Block 3: Optical Tremolo Pedal -->
+          <div id="cardChainTrem" class="p-4 rounded-2xl bg-slate-900/90 border-2 border-cyan-500/50 pedal-trem-active flex flex-col justify-between transition">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-extrabold uppercase text-cyan-400">3. Trémolo Óptico</span>
+                <span id="badgeChainTrem" class="px-2 py-0.5 rounded-full text-[11px] font-black bg-cyan-400 text-slate-950">ON</span>
+              </div>
+              <div class="text-base font-extrabold text-white mt-1">LED + Foto-resistor (LDR)</div>
+              <p class="text-xs text-slate-300 mt-1">
+                Un LED parpadea frente al sensor de luz y <strong>modula la amplitud</strong> (volumen sube y baja).
+              </p>
+            </div>
+            <div class="mt-3 pt-2 border-t border-white/10 space-y-2">
+              <div class="flex justify-between text-xs">
+                <span class="text-slate-400">Velocidad LED (f_m):</span>
+                <span id="lblChainTremRate" class="font-bold text-cyan-300">4.0 Hz</span>
+              </div>
+              <input id="sliderChainTremRate" type="range" min="0.5" max="10" step="0.5" value="4.0" class="w-full cyan-slider" />
+              <button id="btnToggleChainTrem" type="button" class="w-full py-1.5 rounded-lg text-xs font-extrabold bg-cyan-400 hover:bg-cyan-300 text-slate-950 transition">
+                🦶 Pisar Switch Trémolo (ON/OFF)
+              </button>
+            </div>
+          </div>
+
+          <!-- Block 4: Amplifier Output -->
+          <div class="p-4 rounded-2xl bg-slate-900/90 border border-pink-400/40 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-extrabold uppercase text-pink-400">4. Salida Final</span>
+                <span class="text-lg">🔊</span>
+              </div>
+              <div class="text-base font-extrabold text-white mt-1">Amplificador y Parlante</div>
+              <p class="text-xs text-slate-300 mt-1">
+                La señal eléctrica final mueve el cono del parlante y empuja el aire hacia tus oídos.
+              </p>
+            </div>
+            <div class="mt-3 pt-2 border-t border-white/10 space-y-1.5">
+              <div class="text-xs text-slate-400">Estado de la onda:</div>
+              <div id="chainStatusPill" class="px-2.5 py-1.5 rounded-lg bg-pink-500/20 border border-pink-400/40 text-xs font-bold text-pink-200 text-center">
+                Onda Recortada + Modulada
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 SYNCHRONIZED WAVE CANVASES -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 pt-1">
+          <!-- Stage A Canvas -->
+          <div class="p-3.5 rounded-2xl bg-slate-950/90 border border-emerald-500/30">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-extrabold text-emerald-400 uppercase">① Onda Limpia (Guitarra)</span>
+              <span class="text-[11px] text-slate-400">Sinusoidal pura</span>
+            </div>
+            <canvas id="canvasChainClean" width="380" height="150" class="w-full h-36 rounded-lg bg-slate-900"></canvas>
+          </div>
+
+          <!-- Stage B Canvas -->
+          <div class="p-3.5 rounded-2xl bg-slate-950/90 border border-amber-500/30">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-extrabold text-amber-400 uppercase">② Después del Pedal Fuzz</span>
+              <span id="subLabelFuzzStage" class="text-[11px] text-amber-200">Cimas recortadas (Clipping)</span>
+            </div>
+            <canvas id="canvasChainFuzz" width="380" height="150" class="w-full h-36 rounded-lg bg-slate-900"></canvas>
+          </div>
+
+          <!-- Stage C Canvas -->
+          <div class="p-3.5 rounded-2xl bg-slate-950/90 border border-cyan-500/30">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-extrabold text-cyan-400 uppercase">③ Salida Final (Con Trémolo)</span>
+              <span id="subLabelTremStage" class="text-[11px] text-cyan-200">Envolvente óptica pulsante</span>
+            </div>
+            <canvas id="canvasChainFinal" width="380" height="150" class="w-full h-36 rounded-lg bg-slate-900"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 2: PEDAL FUZZ EN DETALLE -->
+    <section id="slide-1" class="slide-section hidden w-full slide-fade">
+      <div class="canva-card p-5 sm:p-8 space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-4">
+          <div>
+            <span class="canva-pill px-3 py-1 rounded-full text-xs font-extrabold text-amber-300 uppercase">
+              🔥 Simulador 2 · Física de Semiconductores
+            </span>
+            <h2 class="text-2xl sm:text-3xl font-black text-white mt-1.5">
+              Pedal 1: El Fuzz y el Recorte de Onda (Clipping)
+            </h2>
+          </div>
+          <div class="px-3.5 py-2 rounded-xl bg-amber-500/15 border border-amber-400/40 text-xs font-bold text-amber-200">
+            💡 Idea clave: Un transistor satura la onda y los diodos le ponen un "techo" fijo (±V_th).
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <!-- Controls & Physics Explanation -->
+          <div class="lg:col-span-5 space-y-4">
+            <div class="p-4 rounded-2xl bg-slate-900/90 border border-white/10 space-y-4">
+              <h3 class="text-sm font-extrabold uppercase tracking-wider text-amber-400">
+                🎛️ Controles del Circuito Fuzz
+              </h3>
+
+              <!-- Fuzz Gain Slider -->
+              <div>
+                <div class="flex justify-between text-xs mb-1">
+                  <span class="font-semibold text-slate-300">1. Ganancia del Transistor (Amplificación):</span>
+                  <span id="lblFuzzDeepGain" class="font-extrabold text-amber-400">8.0x</span>
+                </div>
+                <input id="sliderFuzzDeepGain" type="range" min="1" max="15" step="0.5" value="8.0" class="w-full" />
+                <p class="text-[11px] text-slate-400 mt-1">
+                  Multiplica la amplitud de entrada. Si supera el umbral del diodo, la cima se corta.
+                </p>
+              </div>
+
+              <!-- Diode Threshold Slider -->
+              <div>
+                <div class="flex justify-between text-xs mb-1">
+                  <span class="font-semibold text-slate-300">2. Voltaje Umbral del Diodo (V_th):</span>
+                  <span id="lblFuzzThreshold" class="font-extrabold text-pink-400">0.45 V</span>
+                </div>
+                <input id="sliderFuzzThreshold" type="range" min="0.2" max="0.9" step="0.05" value="0.45" class="w-full violet-slider" />
+                <p class="text-[11px] text-slate-400 mt-1">
+                  Diodo de Germanio (~0.3 V) vs. Silicio (~0.7 V). Define dónde está el "techo".
+                </p>
+              </div>
+
+              <!-- Clipping Mode Selector -->
+              <div>
+                <div class="text-xs font-semibold text-slate-300 mb-2">3. Tipo de Recorte (Curva de Transferencia):</div>
+                <div class="grid grid-cols-2 gap-2">
+                  <button id="btnClipHard" type="button" class="py-2 px-3 rounded-xl text-xs font-extrabold bg-amber-500 text-slate-950 shadow transition">
+                    📐 Hard Clipping (Corte Recto)
+                  </button>
+                  <button id="btnClipSoft" type="button" class="py-2 px-3 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 border border-white/15 hover:bg-slate-700 transition">
+                    🌊 Soft Clipping (Suave / tanh)
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Didactic Physics Box -->
+            <div class="p-4 rounded-2xl bg-indigo-950/60 border border-indigo-400/30 space-y-2">
+              <div class="text-xs font-extrabold uppercase text-indigo-300">🔬 ¿Por qué cambia tanto el timbre? (Teorema de Fourier)</div>
+              <p class="text-xs text-slate-200 leading-relaxed">
+                Una onda sinusoidal limpia tiene <strong>1 sola frecuencia fundamental (f₀)</strong>. Cuando aplastamos la onda contra el techo de voltaje, la transformamos casi en una onda cuadrada, lo que equivale a sumar <strong>infinitos armónicos impares (3f₀, 5f₀, 7f₀...)</strong>. ¡Eso es el rugido del Fuzz!
+              </p>
+            </div>
+          </div>
+
+          <!-- Oscilloscope + Harmonics Visualizer -->
+          <div class="lg:col-span-7 space-y-4">
+            <div class="p-4 rounded-2xl bg-slate-950/90 border border-amber-500/40">
+              <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                <span class="text-xs font-extrabold uppercase text-amber-400">
+                  📈 Osciloscopio Comparativo: Onda Limpia vs. Onda Recortada
+                </span>
+                <div class="flex items-center gap-3 text-xs">
+                  <span class="flex items-center gap-1 text-emerald-400"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block"></span> Entrada</span>
+                  <span class="flex items-center gap-1 text-rose-400"><span class="w-2.5 h-2.5 rounded-full bg-rose-400 inline-block"></span> Umbral ±V_th</span>
+                  <span class="flex items-center gap-1 text-amber-400"><span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span> Salida Fuzz</span>
+                </div>
+              </div>
+              <canvas id="canvasFuzzDeep" width="650" height="220" class="w-full h-52 rounded-xl bg-slate-900"></canvas>
+            </div>
+
+            <!-- Harmonic Spectrum Bars -->
+            <div class="p-4 rounded-2xl bg-slate-950/90 border border-pink-500/30">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-extrabold uppercase text-pink-400">
+                  📊 Espectro de Frecuencias (Armónicos Generados por el Recorte)
+                </span>
+                <span class="text-[11px] text-slate-400">Más recorte = Más armónicos agudos</span>
+              </div>
+              <canvas id="canvasFuzzHarmonics" width="650" height="120" class="w-full h-28 rounded-xl bg-slate-900"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 3: PEDAL TRÉMOLO ÓPTICO EN DETALLE -->
+    <section id="slide-2" class="slide-section hidden w-full slide-fade">
+      <div class="canva-card p-5 sm:p-8 space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-4">
+          <div>
+            <span class="canva-pill px-3 py-1 rounded-full text-xs font-extrabold text-cyan-300 uppercase">
+              💡 Simulador 3 · Optoelectrónica y Modulación
+            </span>
+            <h2 class="text-2xl sm:text-3xl font-black text-white mt-1.5">
+              Pedal 2: Trémolo Óptico — Controlando el Sonido con Luz
+            </h2>
+          </div>
+          <div class="px-3.5 py-2 rounded-xl bg-cyan-500/15 border border-cyan-400/40 text-xs font-bold text-cyan-200">
+            💡 Sin cables mecánicos: un LED ilumina un foto-resistor (LDR) dentro de una cápsula oscura.
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <!-- Left: Optocoupler Animation & Sliders -->
+          <div class="lg:col-span-5 space-y-4">
+            <!-- Animated LED + LDR Chamber -->
+            <div class="p-4 rounded-2xl bg-slate-950/90 border border-cyan-500/40">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-extrabold uppercase text-cyan-400">🔦 Interior del Optoacoplador (En Vivo)</span>
+                <span id="lblLdrResistance" class="text-xs font-mono font-bold text-amber-300">R_LDR: 12.5 kΩ</span>
+              </div>
+              <canvas id="canvasOptoChamber" width="420" height="145" class="w-full h-36 rounded-xl bg-slate-900"></canvas>
+              <div class="grid grid-cols-2 gap-2 mt-2 text-[11px] text-slate-300">
+                <div class="p-2 rounded-lg bg-white/5">
+                  ☀️ <strong>Mucha Luz LED:</strong> Baja resistencia (R_LDR ↓) → Pasa todo el volumen.
+                </div>
+                <div class="p-2 rounded-lg bg-white/5">
+                  🌑 <strong>LED Apagado:</strong> Alta resistencia (R_LDR ↑) → El volumen cae.
+                </div>
+              </div>
+            </div>
+
+            <!-- Tremolo Sliders -->
+            <div class="p-4 rounded-2xl bg-slate-900/90 border border-white/10 space-y-4">
+              <div>
+                <div class="flex justify-between text-xs mb-1">
+                  <span class="font-semibold text-slate-300">1. Velocidad del Parpadeo LED (f_m - Rate):</span>
+                  <span id="lblTremDeepRate" class="font-extrabold text-cyan-400">3.5 Hz</span>
+                </div>
+                <input id="sliderTremDeepRate" type="range" min="0.5" max="10" step="0.5" value="3.5" class="w-full cyan-slider" />
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1">
+                  <span class="font-semibold text-slate-300">2. Profundidad Óptica (m - Depth):</span>
+                  <span id="lblTremDeepDepth" class="font-extrabold text-cyan-400">80%</span>
+                </div>
+                <input id="sliderTremDeepDepth" type="range" min="0" max="100" step="5" value="80" class="w-full cyan-slider" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Amplitude Modulation Oscilloscope & Math -->
+          <div class="lg:col-span-7 space-y-4">
+            <div class="p-4 rounded-2xl bg-slate-950/90 border border-cyan-500/40">
+              <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                <span class="text-xs font-extrabold uppercase text-cyan-400">
+                  🌊 Modulación de Amplitud (AM): Onda Portadora × Envolvente de Luz
+                </span>
+                <div class="flex items-center gap-3 text-xs">
+                  <span class="flex items-center gap-1 text-amber-300"><span class="w-2.5 h-2.5 rounded-full bg-amber-300 inline-block"></span> Envolvente LED</span>
+                  <span class="flex items-center gap-1 text-cyan-400"><span class="w-2.5 h-2.5 rounded-full bg-cyan-400 inline-block"></span> Onda Modulada</span>
+                </div>
+              </div>
+              <canvas id="canvasTremDeep" width="650" height="235" class="w-full h-56 rounded-xl bg-slate-900"></canvas>
+            </div>
+
+            <!-- Formula Card for High Schoolers -->
+            <div class="p-4 rounded-2xl bg-cyan-950/40 border border-cyan-400/30 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div class="space-y-1">
+                <div class="text-xs font-extrabold uppercase text-cyan-300">📐 La Ecuación que estás escuchando:</div>
+                <p class="text-xs text-slate-200">
+                  Multiplicamos la nota rápida de la guitarra (sin(2π·f₀·t)) por el ritmo lento del LED (cos(2π·f_m·t)):
+                </p>
+              </div>
+              <div class="px-4 py-2.5 rounded-xl bg-slate-950 border border-cyan-400/40 font-mono text-xs sm:text-sm text-cyan-200 whitespace-nowrap">
+                V_out(t) = [1 + m·cos(2π·f_m·t)] · V_in(t)
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- BOTTOM PRESENTATION BAR -->
+  <footer class="w-full border-t border-white/10 bg-slate-950/90 backdrop-blur-md px-4 py-2.5">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <button id="btnPrevSlide" type="button" class="px-4 py-1.5 rounded-xl text-xs font-bold bg-white/10 hover:bg-white/20 text-slate-200 transition disabled:opacity-40">
+        ← Animación Anterior
+      </button>
+
+      <div class="flex items-center gap-3">
+        <span id="slideCounterText" class="text-xs font-extrabold text-amber-400">Simulador 1 / 3</span>
+        <span class="text-xs text-slate-400 hidden md:inline">| Taller Puertas Abiertas · Ingeniería Civil Física</span>
+      </div>
+
+      <button id="btnNextSlide" type="button" class="px-4 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-500 to-pink-600 hover:from-amber-400 hover:to-pink-500 text-white shadow transition">
+        Siguiente Animación →
+      </button>
+    </div>
+  </footer>
+
+  <!-- JAVASCRIPT: NAVIGATION, REAL-TIME WAVE PHYSICS & WEB AUDIO SYNTH -->
+  <script>
+    const slidesMeta = [
+      { title: "1. Cadena Completa" },
+      { title: "2. Pedal Fuzz" },
+      { title: "3. Trémolo Óptico" }
+    ];
+
+    let currentSlide = 0;
+
+    // Shared Interactive Physics Parameters
+    const state = {
+      noteFreq: 220,        // Hz (A3)
+      fuzzOn: true,
+      fuzzGain: 7.5,        // 1 to 15
+      fuzzThreshold: 0.45,  // 0.2 to 0.9 V
+      clipMode: 'hard',     // 'hard' or 'soft'
+      tremOn: true,
+      tremRate: 4.0,        // Hz (0.5 to 10)
+      tremDepth: 0.80,      // 0 to 1
+      pluckBoost: 1.0       // Transient envelope when plucking
+    };
+
+    // Build Top Navigation Pills
+    const navContainer = document.getElementById('slideNavContainer');
+    slidesMeta.forEach((s, idx) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'slide-nav-btn px-3 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap';
+      btn.textContent = s.title;
+      btn.addEventListener('click', () => goToSlide(idx));
+      navContainer.appendChild(btn);
+    });
+
+    function goToSlide(index) {
+      currentSlide = Math.max(0, Math.min(slidesMeta.length - 1, index));
+      document.querySelectorAll('.slide-section').forEach((sec, idx) => {
+        if (idx === currentSlide) {
+          sec.classList.remove('hidden');
+        } else {
+          sec.classList.add('hidden');
+        }
+      });
+
+      document.querySelectorAll('.slide-nav-btn').forEach((btn, idx) => {
+        if (idx === currentSlide) {
+          btn.className = 'slide-nav-btn px-3 py-1.5 rounded-lg text-xs font-extrabold bg-amber-500 text-slate-950 shadow transition whitespace-nowrap';
+        } else {
+          btn.className = 'slide-nav-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/5 hover:bg-white/15 text-slate-300 transition whitespace-nowrap';
+        }
+      });
+
+      document.getElementById('slideCounterText').textContent = `Simulador ${currentSlide + 1} / ${slidesMeta.length}`;
+      document.getElementById('btnPrevSlide').disabled = currentSlide === 0;
+      document.getElementById('btnNextSlide').textContent = currentSlide === slidesMeta.length - 1 ? '↺ Volver al Inicio' : 'Siguiente Animación →';
+    }
+
+    document.getElementById('btnPrevSlide').addEventListener('click', () => goToSlide(currentSlide - 1));
+    document.getElementById('btnNextSlide').addEventListener('click', () => {
+      if (currentSlide === slidesMeta.length - 1) goToSlide(0);
+      else goToSlide(currentSlide + 1);
+    });
+
+    // Keyboard navigation
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') goToSlide(currentSlide + 1);
+      if (e.key === 'ArrowLeft') goToSlide(currentSlide - 1);
+    });
+
+    // =========================================================================
+    // WEB AUDIO API LIVE SOUND SYNTHESIZER
+    // =========================================================================
+    let audioCtx = null;
+    let isAudioPlaying = false;
+    let oscNode = null;
+    let preGainNode = null;
+    let shaperNode = null;
+    let tremGainNode = null;
+    let lfoNode = null;
+    let lfoDepthNode = null;
+    let masterGainNode = null;
+
+    function makeDistortionCurve(gain, threshold, mode) {
+      const n_samples = 2048;
+      const curve = new Float32Array(n_samples);
+      for (let i = 0; i < n_samples; ++i) {
+        const x = (i * 2) / n_samples - 1;
+        const amplified = x * gain;
+        if (!state.fuzzOn) {
+          curve[i] = x;
+        } else if (mode === 'hard') {
+          curve[i] = Math.max(-threshold, Math.min(threshold, amplified)) / threshold;
+        } else {
+          curve[i] = Math.tanh(amplified / threshold);
+        }
+      }
+      return curve;
+    }
+
+    function updateAudioGraph() {
+      if (!audioCtx || !isAudioPlaying) return;
+      const now = audioCtx.currentTime;
+      oscNode.frequency.setTargetAtTime(state.noteFreq, now, 0.02);
+      shaperNode.curve = makeDistortionCurve(state.fuzzGain, state.fuzzThreshold, state.clipMode);
+
+      lfoNode.frequency.setTargetAtTime(state.tremRate, now, 0.02);
+      const effDepth = state.tremOn ? state.tremDepth * 0.45 : 0;
+      lfoDepthNode.gain.setTargetAtTime(effDepth, now, 0.02);
+      tremGainNode.gain.setTargetAtTime(0.55, now, 0.02);
+    }
+
+    function toggleAudio() {
+      const btn = document.getElementById('btnAudioToggle');
+      const icon = document.getElementById('audioIcon');
+      const label = document.getElementById('audioLabel');
+
+      if (!isAudioPlaying) {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        oscNode = audioCtx.createOscillator();
+        oscNode.type = 'sine';
+        oscNode.frequency.value = state.noteFreq;
+
+        preGainNode = audioCtx.createGain();
+        preGainNode.gain.value = 1.0;
+
+        shaperNode = audioCtx.createWaveShaper();
+        shaperNode.curve = makeDistortionCurve(state.fuzzGain, state.fuzzThreshold, state.clipMode);
+        shaperNode.oversample = '4x';
+
+        tremGainNode = audioCtx.createGain();
+        tremGainNode.gain.value = 0.55;
+
+        lfoNode = audioCtx.createOscillator();
+        lfoNode.type = 'sine';
+        lfoNode.frequency.value = state.tremRate;
+
+        lfoDepthNode = audioCtx.createGain();
+        lfoDepthNode.gain.value = state.tremOn ? state.tremDepth * 0.45 : 0;
+
+        masterGainNode = audioCtx.createGain();
+        masterGainNode.gain.value = 0.14;
+
+        lfoNode.connect(lfoDepthNode);
+        lfoDepthNode.connect(tremGainNode.gain);
+
+        oscNode.connect(preGainNode);
+        preGainNode.connect(shaperNode);
+        shaperNode.connect(tremGainNode);
+        tremGainNode.connect(masterGainNode);
+        masterGainNode.connect(audioCtx.destination);
+
+        oscNode.start();
+        lfoNode.start();
+        isAudioPlaying = true;
+
+        icon.textContent = '🔊';
+        label.textContent = 'Audio en Vivo: ON';
+        btn.className = 'px-3.5 py-1.5 rounded-xl text-xs font-extrabold bg-emerald-500 text-slate-950 shadow transition flex items-center gap-1.5';
+      } else {
+        try {
+          oscNode.stop();
+          lfoNode.stop();
+        } catch (e) {}
+        isAudioPlaying = false;
+        icon.textContent = '🔇';
+        label.textContent = 'Audio en Vivo: OFF';
+        btn.className = 'px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-400/40 transition flex items-center gap-1.5 shadow';
+      }
+    }
+
+    document.getElementById('btnAudioToggle').addEventListener('click', toggleAudio);
+
+    // =========================================================================
+    // UI CONTROLS SYNCHRONIZATION
+    // =========================================================================
+    function syncAllUI() {
+      // Note Frequency
+      const noteNames = {
+        110: 'La2 (110 Hz)',
+        220: 'La3 (220 Hz)',
+        330: 'Mi4 (330 Hz)',
+        440: 'La4 (440 Hz)'
+      };
+      const fLabel = noteNames[state.noteFreq] || `${state.noteFreq} Hz`;
+      document.getElementById('lblNoteFreq').textContent = fLabel;
+      document.getElementById('sliderNoteFreq').value = state.noteFreq;
+
+      // Fuzz UI
+      document.getElementById('lblChainFuzzGain').textContent = `${state.fuzzGain.toFixed(1)}x`;
+      document.getElementById('sliderChainFuzzGain').value = state.fuzzGain;
+      document.getElementById('lblFuzzDeepGain').textContent = `${state.fuzzGain.toFixed(1)}x`;
+      document.getElementById('sliderFuzzDeepGain').value = state.fuzzGain;
+
+      document.getElementById('lblFuzzThreshold').textContent = `${state.fuzzThreshold.toFixed(2)} V`;
+      document.getElementById('sliderFuzzThreshold').value = state.fuzzThreshold;
+
+      const cardFuzz = document.getElementById('cardChainFuzz');
+      const badgeFuzz = document.getElementById('badgeChainFuzz');
+      const subFuzz = document.getElementById('subLabelFuzzStage');
+      if (state.fuzzOn) {
+        cardFuzz.classList.add('pedal-fuzz-active');
+        badgeFuzz.textContent = 'ON';
+        badgeFuzz.className = 'px-2 py-0.5 rounded-full text-[11px] font-black bg-amber-500 text-slate-950';
+        subFuzz.textContent = 'Cimas recortadas (Clipping activo)';
+      } else {
+        cardFuzz.classList.remove('pedal-fuzz-active');
+        badgeFuzz.textContent = 'BYPASS';
+        badgeFuzz.className = 'px-2 py-0.5 rounded-full text-[11px] font-bold bg-slate-700 text-slate-300';
+        subFuzz.textContent = 'Bypass (Pasa onda limpia)';
+      }
+
+      // Tremolo UI
+      document.getElementById('lblChainTremRate').textContent = `${state.tremRate.toFixed(1)} Hz`;
+      document.getElementById('sliderChainTremRate').value = state.tremRate;
+      document.getElementById('lblTremDeepRate').textContent = `${state.tremRate.toFixed(1)} Hz`;
+      document.getElementById('sliderTremDeepRate').value = state.tremRate;
+
+      document.getElementById('lblTremDeepDepth').textContent = `${Math.round(state.tremDepth * 100)}%`;
+      document.getElementById('sliderTremDeepDepth').value = Math.round(state.tremDepth * 100);
+
+      const cardTrem = document.getElementById('cardChainTrem');
+      const badgeTrem = document.getElementById('badgeChainTrem');
+      const subTrem = document.getElementById('subLabelTremStage');
+      if (state.tremOn) {
+        cardTrem.classList.add('pedal-trem-active');
+        badgeTrem.textContent = 'ON';
+        badgeTrem.className = 'px-2 py-0.5 rounded-full text-[11px] font-black bg-cyan-400 text-slate-950';
+        subTrem.textContent = 'Envolvente óptica pulsante';
+      } else {
+        cardTrem.classList.remove('pedal-trem-active');
+        badgeTrem.textContent = 'BYPASS';
+        badgeTrem.className = 'px-2 py-0.5 rounded-full text-[11px] font-bold bg-slate-700 text-slate-300';
+        subTrem.textContent = 'Bypass (Volumen constante)';
+      }
+
+      // Status Pill
+      const pill = document.getElementById('chainStatusPill');
+      if (state.fuzzOn && state.tremOn) pill.textContent = '⚡ Onda Recortada + Modulada';
+      else if (state.fuzzOn && !state.tremOn) pill.textContent = '🔥 Onda Recortada (Solo Fuzz)';
+      else if (!state.fuzzOn && state.tremOn) pill.textContent = '🌊 Sinusoidal Modulada (Solo Trémolo)';
+      else pill.textContent = '✨ Onda Sinusoidal Limpia (Bypass)';
+
+      updateAudioGraph();
+    }
+
+    // Event Listeners for Chain Controls
+    document.getElementById('sliderNoteFreq').addEventListener('input', (e) => {
+      state.noteFreq = parseFloat(e.target.value);
+      syncAllUI();
+    });
+
+    document.getElementById('btnPluckString').addEventListener('click', () => {
+      state.pluckBoost = 1.45;
+    });
+
+    document.getElementById('sliderChainFuzzGain').addEventListener('input', (e) => {
+      state.fuzzGain = parseFloat(e.target.value);
+      syncAllUI();
+    });
+
+    document.getElementById('sliderFuzzDeepGain').addEventListener('input', (e) => {
+      state.fuzzGain = parseFloat(e.target.value);
+      syncAllUI();
+    });
+
+    document.getElementById('sliderFuzzThreshold').addEventListener('input', (e) => {
+      state.fuzzThreshold = parseFloat(e.target.value);
+      syncAllUI();
+    });
+
+    document.getElementById('btnToggleChainFuzz').addEventListener('click', () => {
+      state.fuzzOn = !state.fuzzOn;
+      syncAllUI();
+    });
+
+    document.getElementById('sliderChainTremRate').addEventListener('input', (e) => {
+      state.tremRate = parseFloat(e.target.value);
+      syncAllUI();
+    });
+
+    document.getElementById('sliderTremDeepRate').addEventListener('input', (e) => {
+      state.tremRate = parseFloat(e.target.value);
+      syncAllUI();
+    });
+
+    document.getElementById('sliderTremDeepDepth').addEventListener('input', (e) => {
+      state.tremDepth = parseFloat(e.target.value) / 100;
+      syncAllUI();
+    });
+
+    document.getElementById('btnToggleChainTrem').addEventListener('click', () => {
+      state.tremOn = !state.tremOn;
+      syncAllUI();
+    });
+
+    // Hard vs Soft Clipping Buttons
+    const btnClipHard = document.getElementById('btnClipHard');
+    const btnClipSoft = document.getElementById('btnClipSoft');
+    btnClipHard.addEventListener('click', () => {
+      state.clipMode = 'hard';
+      btnClipHard.className = 'py-2 px-3 rounded-xl text-xs font-extrabold bg-amber-500 text-slate-950 shadow transition';
+      btnClipSoft.className = 'py-2 px-3 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 border border-white/15 hover:bg-slate-700 transition';
+      syncAllUI();
+    });
+    btnClipSoft.addEventListener('click', () => {
+      state.clipMode = 'soft';
+      btnClipSoft.className = 'py-2 px-3 rounded-xl text-xs font-extrabold bg-amber-500 text-slate-950 shadow transition';
+      btnClipHard.className = 'py-2 px-3 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 border border-white/15 hover:bg-slate-700 transition';
+      syncAllUI();
+    });
+
+    // Preset Buttons on Slide 1
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const p = btn.getAttribute('data-preset');
+        if (p === 'clean') { state.fuzzOn = false; state.tremOn = false; }
+        if (p === 'fuzz')  { state.fuzzOn = true;  state.tremOn = false; }
+        if (p === 'trem')  { state.fuzzOn = false; state.tremOn = true;  }
+        if (p === 'both')  { state.fuzzOn = true;  state.tremOn = true;  }
+        syncAllUI();
+      });
+    });
+
+    // =========================================================================
+    // WAVE PHYSICS FUNCTIONS & CANVAS RENDERING LOOP
+    // =========================================================================
+    function computeFuzzSample(cleanSample, gain, threshold, mode, enabled) {
+      if (!enabled) return cleanSample;
+      const driven = cleanSample * (gain * 0.35);
+      if (mode === 'hard') {
+        return Math.max(-threshold, Math.min(threshold, driven)) / threshold * 0.85;
+      } else {
+        return Math.tanh(driven / threshold) * 0.85;
+      }
+    }
+
+    function drawGrid(ctx, w, h) {
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, h / 2);
+      ctx.lineTo(w, h / 2);
+      for (let x = 0; x < w; x += w / 6) {
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, h);
+      }
+      ctx.stroke();
+    }
+
+    function renderLoop(timestamp) {
+      const t = timestamp * 0.001;
+
+      // Decay pluck boost smoothly
+      if (state.pluckBoost > 1.0) {
+        state.pluckBoost = Math.max(1.0, state.pluckBoost - 0.012);
+      }
+
+      const cyclesFactor = (state.noteFreq / 220) * 3.2;
+
+      // -----------------------------------------------------------------------
+      // 1. SLIDE 0: THREE SYNCHRONIZED SIGNAL CHAIN CANVASES
+      // -----------------------------------------------------------------------
+      if (currentSlide === 0) {
+        const cClean = document.getElementById('canvasChainClean');
+        const cFuzz  = document.getElementById('canvasChainFuzz');
+        const cFinal = document.getElementById('canvasChainFinal');
+
+        if (cClean && cFuzz && cFinal) {
+          const ctx1 = cClean.getContext('2d');
+          const ctx2 = cFuzz.getContext('2d');
+          const ctx3 = cFinal.getContext('2d');
+          const w = cClean.width;
+          const h = cClean.height;
+          const mid = h / 2;
+          const amp = h * 0.38 * state.pluckBoost;
+
+          ctx1.clearRect(0, 0, w, h);
+          ctx2.clearRect(0, 0, w, h);
+          ctx3.clearRect(0, 0, w, h);
+          drawGrid(ctx1, w, h);
+          drawGrid(ctx2, w, h);
+          drawGrid(ctx3, w, h);
+
+          // Stage 1: Clean Sine
+          ctx1.strokeStyle = '#34d399';
+          ctx1.lineWidth = 2.5;
+          ctx1.beginPath();
+          for (let x = 0; x < w; x++) {
+            const u = x / w;
+            const yVal = Math.sin(2 * Math.PI * cyclesFactor * u - t * 7);
+            const py = mid - yVal * amp * 0.75;
+            if (x === 0) ctx1.moveTo(x, py);
+            else ctx1.lineTo(x, py);
+          }
+          ctx1.stroke();
+
+          // Stage 2: After Fuzz
+          if (state.fuzzOn) {
+            ctx2.strokeStyle = 'rgba(244, 63, 94, 0.45)';
+            ctx2.setLineDash([5, 5]);
+            ctx2.beginPath();
+            const thY = amp * 0.85;
+            ctx2.moveTo(0, mid - thY); ctx2.lineTo(w, mid - thY);
+            ctx2.moveTo(0, mid + thY); ctx2.lineTo(w, mid + thY);
+            ctx2.stroke();
+            ctx2.setLineDash([]);
+          }
+
+          ctx2.strokeStyle = '#f59e0b';
+          ctx2.lineWidth = 2.5;
+          ctx2.beginPath();
+          for (let x = 0; x < w; x++) {
+            const u = x / w;
+            const clean = Math.sin(2 * Math.PI * cyclesFactor * u - t * 7);
+            const fuzzed = computeFuzzSample(clean, state.fuzzGain, state.fuzzThreshold, state.clipMode, state.fuzzOn);
+            const py = mid - fuzzed * amp;
+            if (x === 0) ctx2.moveTo(x, py);
+            else ctx2.lineTo(x, py);
+          }
+          ctx2.stroke();
+
+          // Stage 3: Final Output with Optical Tremolo Envelope
+          if (state.tremOn) {
+            ctx3.strokeStyle = 'rgba(251, 191, 36, 0.55)';
+            ctx3.setLineDash([4, 4]);
+            ctx3.lineWidth = 1.5;
+            ctx3.beginPath();
+            for (let x = 0; x < w; x++) {
+              const u = x / w;
+              const env = 1 - state.tremDepth * 0.45 * (1 - Math.cos(2 * Math.PI * (state.tremRate * 0.45) * u - t * state.tremRate * 1.6));
+              const py = mid - env * amp * 0.85;
+              if (x === 0) ctx3.moveTo(x, py);
+              else ctx3.lineTo(x, py);
+            }
+            ctx3.stroke();
+            ctx3.setLineDash([]);
+          }
+
+          ctx3.strokeStyle = '#22d3ee';
+          ctx3.lineWidth = 2.5;
+          ctx3.beginPath();
+          for (let x = 0; x < w; x++) {
+            const u = x / w;
+            const clean = Math.sin(2 * Math.PI * cyclesFactor * u - t * 7);
+            const fuzzed = computeFuzzSample(clean, state.fuzzGain, state.fuzzThreshold, state.clipMode, state.fuzzOn);
+            const env = state.tremOn
+              ? (1 - state.tremDepth * 0.45 * (1 - Math.cos(2 * Math.PI * (state.tremRate * 0.45) * u - t * state.tremRate * 1.6)))
+              : 1.0;
+            const py = mid - fuzzed * env * amp;
+            if (x === 0) ctx3.moveTo(x, py);
+            else ctx3.lineTo(x, py);
+          }
+          ctx3.stroke();
+        }
+      }
+
+      // -----------------------------------------------------------------------
+      // 2. SLIDE 1: FUZZ DEEP DIVE OSCILLOSCOPE & HARMONIC SPECTRUM
+      // -----------------------------------------------------------------------
+      if (currentSlide === 1) {
+        const cFuzzDeep = document.getElementById('canvasFuzzDeep');
+        const cHarm = document.getElementById('canvasFuzzHarmonics');
+        if (cFuzzDeep && cHarm) {
+          const ctx = cFuzzDeep.getContext('2d');
+          const w = cFuzzDeep.width;
+          const h = cFuzzDeep.height;
+          const mid = h / 2;
+          const scale = h * 0.42;
+
+          ctx.clearRect(0, 0, w, h);
+          drawGrid(ctx, w, h);
+
+          // Threshold lines
+          const thPixels = state.fuzzThreshold * scale;
+          ctx.strokeStyle = 'rgba(244, 63, 94, 0.75)';
+          ctx.setLineDash([6, 4]);
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(0, mid - thPixels); ctx.lineTo(w, mid - thPixels);
+          ctx.moveTo(0, mid + thPixels); ctx.lineTo(w, mid + thPixels);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // Clean Reference Wave
+          ctx.strokeStyle = 'rgba(52, 211, 153, 0.55)';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          for (let x = 0; x < w; x++) {
+            const u = x / w;
+            const s = Math.sin(2 * Math.PI * 3 * u - t * 5) * 0.55;
+            const py = mid - s * scale;
+            if (x === 0) ctx.moveTo(x, py);
+            else ctx.lineTo(x, py);
+          }
+          ctx.stroke();
+
+          // Clipped Fuzz Wave
+          ctx.strokeStyle = '#f59e0b';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          for (let x = 0; x < w; x++) {
+            const u = x / w;
+            const driven = Math.sin(2 * Math.PI * 3 * u - t * 5) * (state.fuzzGain * 0.14);
+            let out;
+            if (state.clipMode === 'hard') {
+              out = Math.max(-state.fuzzThreshold, Math.min(state.fuzzThreshold, driven));
+            } else {
+              out = state.fuzzThreshold * Math.tanh(driven / state.fuzzThreshold);
+            }
+            const py = mid - out * scale;
+            if (x === 0) ctx.moveTo(x, py);
+            else ctx.lineTo(x, py);
+          }
+          ctx.stroke();
+
+          // Harmonic Bars
+          const hCtx = cHarm.getContext('2d');
+          const hw = cHarm.width;
+          const hh = cHarm.height;
+          hCtx.clearRect(0, 0, hw, hh);
+
+          const clipSeverity = Math.min(1, (state.fuzzGain * 0.14) / state.fuzzThreshold);
+          const harmonics = [
+            { label: 'f₀ (1°)', amp: 1.0 },
+            { label: '3f₀ (3°)', amp: clipSeverity * 0.68 },
+            { label: '5f₀ (5°)', amp: Math.pow(clipSeverity, 1.3) * 0.48 },
+            { label: '7f₀ (7°)', amp: Math.pow(clipSeverity, 1.6) * 0.35 },
+            { label: '9f₀ (9°)', amp: Math.pow(clipSeverity, 1.9) * 0.25 },
+            { label: '11f₀ (11°)', amp: Math.pow(clipSeverity, 2.2) * 0.18 }
+          ];
+
+          const barWidth = 54;
+          const gap = (hw - harmonics.length * barWidth) / (harmonics.length + 1);
+          harmonics.forEach((hm, idx) => {
+            const bx = gap + idx * (barWidth + gap);
+            const bHeight = Math.max(4, hm.amp * (hh - 32));
+            const by = hh - 20 - bHeight;
+
+            const grad = hCtx.createLinearGradient(bx, by, bx, hh - 20);
+            grad.addColorStop(0, '#f59e0b');
+            grad.addColorStop(1, '#ec4899');
+            hCtx.fillStyle = grad;
+            hCtx.fillRect(bx, by, barWidth, bHeight);
+
+            hCtx.fillStyle = '#cbd5e1';
+            hCtx.font = 'bold 11px Inter';
+            hCtx.textAlign = 'center';
+            hCtx.fillText(hm.label, bx + barWidth / 2, hh - 5);
+          });
+        }
+      }
+
+      // -----------------------------------------------------------------------
+      // 3. SLIDE 2: OPTICAL TREMOLO OPTOCOUPLER & AM MODULATION
+      // -----------------------------------------------------------------------
+      if (currentSlide === 2) {
+        const cOpto = document.getElementById('canvasOptoChamber');
+        const cTrem = document.getElementById('canvasTremDeep');
+        if (cOpto && cTrem) {
+          const lfoVal = 0.5 * (1 + Math.sin(2 * Math.PI * state.tremRate * t));
+          const brightness = 1 - state.tremDepth * (1 - lfoVal);
+          const ldrKOhm = (2 + (1 - brightness) * 95).toFixed(1);
+          document.getElementById('lblLdrResistance').textContent = `R_LDR: ${ldrKOhm} kΩ`;
+
+          // Draw Optocoupler Chamber
+          const oCtx = cOpto.getContext('2d');
+          const ow = cOpto.width;
+          const oh = cOpto.height;
+          oCtx.clearRect(0, 0, ow, oh);
+
+          // LED Glow
+          const glowRadius = 20 + brightness * 55;
+          const radGrad = oCtx.createRadialGradient(95, oh / 2, 4, 95, oh / 2, glowRadius);
+          radGrad.addColorStop(0, `rgba(34, 211, 238, ${0.25 + brightness * 0.75})`);
+          radGrad.addColorStop(1, 'rgba(34, 211, 238, 0)');
+          oCtx.fillStyle = radGrad;
+          oCtx.beginPath();
+          oCtx.arc(95, oh / 2, glowRadius, 0, Math.PI * 2);
+          oCtx.fill();
+
+          // LED Body
+          oCtx.fillStyle = '#06b6d4';
+          oCtx.beginPath();
+          oCtx.arc(95, oh / 2, 16, 0, Math.PI * 2);
+          oCtx.fill();
+          oCtx.fillStyle = '#e2e8f0';
+          oCtx.font = 'bold 11px Inter';
+          oCtx.textAlign = 'center';
+          oCtx.fillText('LED', 95, oh / 2 + 32);
+
+          // Photon Rays
+          oCtx.strokeStyle = `rgba(103, 232, 249, ${brightness * 0.9})`;
+          oCtx.lineWidth = 2;
+          for (let r = -1; r <= 1; r++) {
+            oCtx.beginPath();
+            oCtx.moveTo(125, oh / 2 + r * 14);
+            oCtx.lineTo(275, oh / 2 + r * 14);
+            oCtx.stroke();
+          }
+
+          // LDR Sensor
+          oCtx.fillStyle = '#f59e0b';
+          oCtx.strokeStyle = '#fde68a';
+          oCtx.lineWidth = 2;
+          oCtx.beginPath();
+          oCtx.roundRect(295, oh / 2 - 24, 48, 48, 8);
+          oCtx.fill();
+          oCtx.stroke();
+          oCtx.fillStyle = '#0f172a';
+          oCtx.font = 'extrabold 11px Inter';
+          oCtx.fillText('LDR', 319, oh / 2 + 4);
+          oCtx.fillStyle = '#e2e8f0';
+          oCtx.fillText('Foto-resistor', 319, oh / 2 + 40);
+
+          // Draw AM Wave
+          const tCtx = cTrem.getContext('2d');
+          const tw = cTrem.width;
+          const th = cTrem.height;
+          const tMid = th / 2;
+          const tAmp = th * 0.4;
+
+          tCtx.clearRect(0, 0, tw, th);
+          drawGrid(tCtx, tw, th);
+
+          // Upper & Lower Envelope Curves
+          tCtx.strokeStyle = 'rgba(251, 191, 36, 0.75)';
+          tCtx.setLineDash([6, 4]);
+          tCtx.lineWidth = 2;
+          tCtx.beginPath();
+          for (let x = 0; x < tw; x++) {
+            const u = x / tw;
+            const env = 1 - state.tremDepth * 0.48 * (1 - Math.cos(2 * Math.PI * (state.tremRate * 0.5) * u - t * state.tremRate * 1.8));
+            const py = tMid - env * tAmp;
+            if (x === 0) tCtx.moveTo(x, py);
+            else tCtx.lineTo(x, py);
+          }
+          tCtx.stroke();
+          tCtx.setLineDash([]);
+
+          // Carrier * Envelope Wave
+          tCtx.strokeStyle = '#22d3ee';
+          tCtx.lineWidth = 2.5;
+          tCtx.beginPath();
+          for (let x = 0; x < tw; x++) {
+            const u = x / tw;
+            const env = 1 - state.tremDepth * 0.48 * (1 - Math.cos(2 * Math.PI * (state.tremRate * 0.5) * u - t * state.tremRate * 1.8));
+            const carrier = Math.sin(2 * Math.PI * 16 * u - t * 10);
+            const py = tMid - carrier * env * tAmp;
+            if (x === 0) tCtx.moveTo(x, py);
+            else tCtx.lineTo(x, py);
+          }
+          tCtx.stroke();
+        }
+      }
+
+      requestAnimationFrame(renderLoop);
+    }
+
+    // Initialize
+    goToSlide(0);
+    syncAllUI();
+    requestAnimationFrame(renderLoop);
+  </script>
+</body>
+</html>
